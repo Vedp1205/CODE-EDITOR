@@ -48,7 +48,9 @@ const io = new Server(httpServer, {
 
 const rooms = new Map();
 const pendingEditLogs = new Map();
+const roomCleanupTimers = new Map();
 const EDIT_LOG_DEBOUNCE_MS = 1500;
+const ROOM_RETENTION_MS = 10 * 60 * 1000;
 
 const COLORS = [
   '#EF4444', '#F97316', '#EAB308', '#22C55E', '#06B6D4',
@@ -208,6 +210,28 @@ function emitRoomState(roomId) {
   }
 }
 
+function cancelRoomCleanup(roomId) {
+  const timer = roomCleanupTimers.get(roomId);
+  if (!timer) return;
+
+  clearTimeout(timer);
+  roomCleanupTimers.delete(roomId);
+}
+
+function scheduleRoomCleanup(roomId) {
+  cancelRoomCleanup(roomId);
+
+  const timer = setTimeout(() => {
+    const room = rooms.get(roomId);
+    if (room && room.users.length === 0) {
+      rooms.delete(roomId);
+    }
+    roomCleanupTimers.delete(roomId);
+  }, ROOM_RETENTION_MS);
+
+  roomCleanupTimers.set(roomId, timer);
+}
+
 function findSocketByUserId(roomId, userId) {
   for (const socket of io.sockets.sockets.values()) {
     if (socket.data.roomId === roomId && socket.data.userId === userId) {
@@ -224,6 +248,7 @@ io.on('connection', (socket) => {
     const normalizedUser = normalizeUser(user);
     const room = createRoom(roomName, normalizedUser);
     rooms.set(room.id, room);
+    cancelRoomCleanup(room.id);
     socket.data.roomId = room.id;
     socket.data.userId = normalizedUser.id;
     socket.join(room.id);
@@ -238,6 +263,7 @@ io.on('connection', (socket) => {
       room.id = roomId;
       rooms.set(roomId, room);
     } else {
+      cancelRoomCleanup(roomId);
       const room = rooms.get(roomId);
       const existingIndex = room.users.findIndex((roomUser) => roomUser.id === normalizedUser.id);
       if (existingIndex >= 0) {
@@ -439,7 +465,7 @@ io.on('connection', (socket) => {
     socket.to(roomId).emit('user-left', userId);
 
     if (room.users.length === 0) {
-      rooms.delete(roomId);
+      scheduleRoomCleanup(roomId);
     } else {
       emitRoomState(roomId);
     }
