@@ -288,7 +288,6 @@ io.on('connection', (socket) => {
         content,
         lastModifiedBy: socket.data.userId || socket.id,
       });
-      emitRoomState(roomId);
     });
   socket.on('add-file', ({ roomId, file }) => {
     const room = rooms.get(roomId);
