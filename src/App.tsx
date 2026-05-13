@@ -290,7 +290,7 @@ export function App() {
 
       <button
         onClick={() => setArchOpen(true)}
-        className="fixed bottom-20 md:bottom-6 left-4 md:left-6 z-50 w-12 h-12 md:w-14 md:h-14 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-full shadow-2xl shadow-cyan-500/40 flex items-center justify-center hover:scale-110 transition-transform"
+        className="fixed bottom-24 md:bottom-10 left-4 md:left-6 z-50 w-12 h-12 md:w-14 md:h-14 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-full shadow-2xl shadow-cyan-500/40 flex items-center justify-center hover:scale-110 transition-transform"
         title="View Architecture & Setup Guide"
       >
         <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
