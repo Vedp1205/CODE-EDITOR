@@ -25,12 +25,19 @@
   scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
 }
 
-/* Prevent overflow issues */
 html, body, #root {
-  height: 100%;
+  min-height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+@media (min-width: 768px) {
+  html, body, #root {
+    height: 100%;
+    overflow: hidden;
+  }
 }
 
 /* Monaco editor overrides */

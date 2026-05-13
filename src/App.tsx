@@ -91,7 +91,7 @@ export function App() {
   }
 
   return (
-    <div className="h-screen bg-slate-950 flex flex-col overflow-hidden">
+    <div className="min-h-[100dvh] md:h-screen bg-slate-950 flex flex-col overflow-x-hidden overflow-y-auto md:overflow-hidden">
       <TopBar
         room={room}
         currentUser={currentUser}
@@ -159,7 +159,7 @@ export function App() {
         </div>
       </div>
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex min-h-0 overflow-visible md:overflow-hidden">
         <FileExplorer
           files={room.files}
           activeFileId={activeFileId ?? ''}
