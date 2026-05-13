@@ -2,7 +2,8 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import type { User, FileEntry, Room, ChatMessage, Language } from '../types';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL
+  || (import.meta.env.DEV ? 'http://localhost:5000' : window.location.origin);
 
 const COLORS = [
   '#EF4444', '#F97316', '#EAB308', '#22C55E', '#06B6D4',
