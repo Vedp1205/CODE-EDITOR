@@ -10,7 +10,7 @@ interface ActivityPanelProps {
 
 const ACTION_LABELS: Record<LogEntry['action'], string> = {
   create: 'created room',
-  edit: 'edited',
+  edit: 'updated',
   add: 'added file',
   delete: 'deleted file',
   recover: 'recovered file',
@@ -23,6 +23,14 @@ function formatTimestamp(timestamp: number) {
     hour: '2-digit',
     minute: '2-digit',
   });
+}
+
+function formatContentPreview(value: unknown) {
+  if (typeof value !== 'string') return null;
+
+  const normalized = value.replace(/\s+/g, ' ').trim();
+  if (!normalized) return '(empty)';
+  return normalized.length > 80 ? `${normalized.slice(0, 77)}...` : normalized;
 }
 
 export function ActivityPanel({ logs, isOpen, onToggle, className = '' }: ActivityPanelProps) {
@@ -68,29 +76,42 @@ export function ActivityPanel({ logs, isOpen, onToggle, className = '' }: Activi
             <p className="text-xs text-slate-500">Start editing a file to see activity appear here.</p>
           </div>
         ) : (
-          logs.slice().reverse().map((log) => (
-            <div key={log.id} className="rounded-3xl border border-white/10 bg-slate-900/80 p-4">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <p className="text-sm text-slate-100">
-                    <span className="font-semibold text-white">{log.userName}</span>{' '}
-                    {ACTION_LABELS[log.action]}
-                    {log.fileName ? <span className="text-slate-400"> {log.fileName}</span> : ''}
-                  </p>
-                  {log.details?.previousLength !== undefined && (
-                    <p className="mt-1 text-xs text-slate-500">
-                      {typeof log.details.previousLength === 'number' && typeof log.details.newLength === 'number'
-                        ? `Size: ${log.details.previousLength} → ${log.details.newLength} chars`
-                        : null}
+          logs.slice().reverse().map((log) => {
+            const previousPreview = formatContentPreview(log.details?.previousContent);
+            const nextPreview = formatContentPreview(log.details?.newContent);
+
+            return (
+              <div key={log.id} className="rounded-3xl border border-white/10 bg-slate-900/80 p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-sm text-slate-100">
+                      <span className="font-semibold text-white">{log.userName}</span>{' '}
+                      {ACTION_LABELS[log.action]}
+                      {log.fileName ? <span className="text-slate-400"> {log.fileName}</span> : ''}
                     </p>
-                  )}
-                </div>
-                <div className="text-right">
-                  <p className="text-xs uppercase tracking-[0.18em] text-slate-500">{formatTimestamp(log.timestamp)}</p>
+                    {log.action === 'edit' && typeof log.details?.previousLength === 'number' && typeof log.details?.newLength === 'number' && (
+                      <p className="mt-1 text-xs text-slate-500">
+                        Size: {log.details.previousLength} to {log.details.newLength} chars
+                      </p>
+                    )}
+                    {log.action === 'edit' && (previousPreview || nextPreview) && (
+                      <div className="mt-2 space-y-1 text-xs">
+                        <p className="text-slate-500">
+                          From: <span className="text-slate-300">{previousPreview}</span>
+                        </p>
+                        <p className="text-slate-500">
+                          To: <span className="text-slate-300">{nextPreview}</span>
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs uppercase tracking-[0.18em] text-slate-500">{formatTimestamp(log.timestamp)}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 

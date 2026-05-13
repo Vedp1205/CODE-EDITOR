@@ -47,6 +47,8 @@ const io = new Server(httpServer, {
 });
 
 const rooms = new Map();
+const pendingEditLogs = new Map();
+const EDIT_LOG_DEBOUNCE_MS = 1500;
 
 const COLORS = [
   '#EF4444', '#F97316', '#EAB308', '#22C55E', '#06B6D4',
@@ -128,6 +130,76 @@ function addRoomLog(roomId, log) {
   ].slice(-100);
 }
 
+function createPendingEditKey(roomId, userId, fileId) {
+  return `${roomId}:${userId}:${fileId}`;
+}
+
+function persistEditLog(roomId, pendingEdit) {
+  const details = {
+    previousLength: pendingEdit.previousContent.length,
+    newLength: pendingEdit.newContent.length,
+    previousContent: pendingEdit.previousContent,
+    newContent: pendingEdit.newContent,
+  };
+
+  addRoomLog(roomId, {
+    action: 'edit',
+    userId: pendingEdit.userId,
+    userName: pendingEdit.userName,
+    fileId: pendingEdit.fileId,
+    fileName: pendingEdit.fileName,
+    details,
+  });
+
+  if (process.env.MONGODB_URI) {
+    const log = new Log({
+      roomId,
+      userId: pendingEdit.userId,
+      userName: pendingEdit.userName,
+      action: 'edit',
+      fileId: pendingEdit.fileId,
+      fileName: pendingEdit.fileName,
+      details,
+    });
+    log.save().catch(err => console.error('Log save error:', err));
+  }
+}
+
+function flushPendingEditLog(key) {
+  const pendingEdit = pendingEditLogs.get(key);
+  if (!pendingEdit) return;
+
+  clearTimeout(pendingEdit.timer);
+  pendingEditLogs.delete(key);
+  persistEditLog(pendingEdit.roomId, pendingEdit);
+}
+
+function queueEditLog({ roomId, userId, userName, fileId, fileName, previousContent, newContent }) {
+  const key = createPendingEditKey(roomId, userId, fileId);
+  const existing = pendingEditLogs.get(key);
+
+  if (existing) {
+    clearTimeout(existing.timer);
+    existing.userName = userName;
+    existing.fileName = fileName;
+    existing.newContent = newContent;
+    existing.timer = setTimeout(() => flushPendingEditLog(key), EDIT_LOG_DEBOUNCE_MS);
+    pendingEditLogs.set(key, existing);
+    return;
+  }
+
+  pendingEditLogs.set(key, {
+    roomId,
+    userId,
+    userName,
+    fileId,
+    fileName,
+    previousContent,
+    newContent,
+    timer: setTimeout(() => flushPendingEditLog(key), EDIT_LOG_DEBOUNCE_MS),
+  });
+}
+
 function emitRoomState(roomId) {
   const room = rooms.get(roomId);
   if (room) {
@@ -199,29 +271,16 @@ io.on('connection', (socket) => {
           : file
       ));
 
-      // Log the edit
       if (file && user) {
-        addRoomLog(roomId, {
-          action: 'edit',
-          userId: user.id,
-          userName: user.name,
-          fileId,
-          fileName: file.name,
-          details: { previousLength: file.content.length, newLength: content.length },
-        });
-      }
-
-      if (process.env.MONGODB_URI && file && user) {
-        const log = new Log({
+        queueEditLog({
           roomId,
           userId: user.id,
           userName: user.name,
-          action: 'edit',
           fileId,
           fileName: file.name,
-          details: { previousLength: file.content.length, newLength: content.length },
+          previousContent: file.content,
+          newContent: content,
         });
-        log.save().catch(err => console.error('Log save error:', err));
       }
 
       socket.to(roomId).emit('code-update', {
@@ -368,6 +427,12 @@ io.on('connection', (socket) => {
   socket.on('disconnecting', () => {
     const { roomId, userId } = socket.data;
     if (!roomId || !rooms.has(roomId)) return;
+
+    for (const key of [...pendingEditLogs.keys()]) {
+      if (key.startsWith(`${roomId}:${userId}:`)) {
+        flushPendingEditLog(key);
+      }
+    }
 
     const room = rooms.get(roomId);
     room.users = room.users.filter((user) => user.id !== userId);

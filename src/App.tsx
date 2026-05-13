@@ -8,7 +8,6 @@ import { UserPresencePanel } from './components/UserPresencePanel';
 import { ChatPanel } from './components/ChatPanel';
 import { ActivityPanel } from './components/ActivityPanel';
 import { CodeExecutionPanel } from './components/CodeExecutionPanel';
-import { ArchitectureDiagram } from './components/ArchitectureDiagram';
 import { useRoom } from './hooks/useRoom';
 
 const LAST_ROOM_KEY = 'codecollab:last-room-id';
@@ -36,7 +35,6 @@ export function App() {
   const [chatOpen, setChatOpen] = useState(false);
   const [executionOpen, setExecutionOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [archOpen, setArchOpen] = useState(false);
   const [mobileExplorerOpen, setMobileExplorerOpen] = useState(false);
   const [mobileUsersOpen, setMobileUsersOpen] = useState(false);
   const [autoJoinAttempted, setAutoJoinAttempted] = useState(false);
@@ -133,14 +131,11 @@ export function App() {
 
   if (!isJoined) {
     return (
-      <>
-        <WelcomeScreen
-          onCreateRoom={handleCreateRoom}
-          onJoinRoom={handleJoinRoom}
-          initialRoomId={sharedRoomId}
-        />
-        <ArchitectureDiagram isOpen={archOpen} onClose={() => setArchOpen(false)} />
-      </>
+      <WelcomeScreen
+        onCreateRoom={handleCreateRoom}
+        onJoinRoom={handleJoinRoom}
+        initialRoomId={sharedRoomId}
+      />
     );
   }
 
@@ -335,16 +330,6 @@ export function App() {
           <span>Monaco Editor</span>
         </div>
       </div>
-
-      <button
-        onClick={() => setArchOpen(true)}
-        className="fixed bottom-24 md:bottom-10 left-4 md:left-6 z-50 w-12 h-12 md:w-14 md:h-14 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-full shadow-2xl shadow-cyan-500/40 flex items-center justify-center hover:scale-110 transition-transform"
-        title="View Architecture & Setup Guide"
-      >
-        <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-        </svg>
-      </button>
 
       {mobileExplorerOpen && (
         <div className="md:hidden fixed inset-0 z-50 flex">
