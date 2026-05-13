@@ -79,7 +79,7 @@ export function FileExplorer({ files, activeFileId, onSelectFile, onAddFile, onD
             <select
               value={newFileLang}
               onChange={e => setNewFileLang(e.target.value as Language)}
-              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="codecollab-select w-full px-3 py-2 bg-slate-900 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
             >
               <option value="javascript">JavaScript</option>
               <option value="typescript">TypeScript</option>
