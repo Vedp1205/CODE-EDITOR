@@ -6,6 +6,7 @@ import { FileExplorer } from './components/FileExplorer';
 import { EditorPanel } from './components/EditorPanel';
 import { UserPresencePanel } from './components/UserPresencePanel';
 import { ChatPanel } from './components/ChatPanel';
+import { ActivityPanel } from './components/ActivityPanel';
 import { CodeExecutionPanel } from './components/CodeExecutionPanel';
 import { ArchitectureDiagram } from './components/ArchitectureDiagram';
 import { useRoom } from './hooks/useRoom';
@@ -34,6 +35,7 @@ export function App() {
   const [activeFileId, setActiveFileId] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [executionOpen, setExecutionOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [archOpen, setArchOpen] = useState(false);
   const [mobileExplorerOpen, setMobileExplorerOpen] = useState(false);
   const [mobileUsersOpen, setMobileUsersOpen] = useState(false);
@@ -90,6 +92,13 @@ export function App() {
       kickMember(user.id);
     }
   }, [kickMember]);
+
+  const handleOpenHistory = useCallback(() => {
+    setHistoryOpen((prev) => !prev);
+    setChatOpen(false);
+    setMobileExplorerOpen(false);
+    setMobileUsersOpen(false);
+  }, []);
 
   const closeMobilePanels = useCallback(() => {
     setMobileExplorerOpen(false);
@@ -164,12 +173,19 @@ export function App() {
           setChatOpen(false);
           setMobileUsersOpen(true);
         }}
+        onOpenHistory={handleOpenHistory}
         onOpenChat={() => {
           setMobileExplorerOpen(false);
           setMobileUsersOpen(false);
           setChatOpen(true);
         }}
         onToggleExecution={() => setExecutionOpen(prev => !prev)}
+      />
+
+      <ActivityPanel
+        logs={room.logs || []}
+        isOpen={historyOpen}
+        onToggle={handleOpenHistory}
       />
 
       <div className="md:hidden px-3 py-2 bg-slate-900/70 border-b border-white/10">

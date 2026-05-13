@@ -99,9 +99,33 @@ function createRoom(roomName, user) {
     owner: user.id,
     files: DEFAULT_FILES.map((file) => ({ ...file, lastModified: Date.now() })),
     users: [user],
+    logs: [
+      {
+        id: generateId(),
+        action: 'create',
+        userId: user.id,
+        userName: user.name,
+        timestamp: Date.now(),
+        details: { roomName: roomName || 'Untitled Room' },
+      },
+    ],
     createdAt: Date.now(),
     isPublic: true,
   };
+}
+
+function addRoomLog(roomId, log) {
+  const room = rooms.get(roomId);
+  if (!room) return;
+
+  room.logs = [
+    ...room.logs,
+    {
+      id: generateId(),
+      timestamp: Date.now(),
+      ...log,
+    },
+  ].slice(-100);
 }
 
 function emitRoomState(roomId) {
@@ -158,48 +182,71 @@ io.on('connection', (socket) => {
   });
 
   socket.on('code-change', ({ roomId, fileId, content }) => {
-    const room = rooms.get(roomId);
-    if (!room) return;
+      const room = rooms.get(roomId);
+      if (!room) return;
 
-    const file = room.files.find(f => f.id === fileId);
-    const user = room.users.find(u => u.id === socket.data.userId);
+      const file = room.files.find(f => f.id === fileId);
+      const user = room.users.find(u => u.id === socket.data.userId);
 
-    room.files = room.files.map((file) => (
-      file.id === fileId
-        ? {
-            ...file,
-            content,
-            lastModified: Date.now(),
-            lastModifiedBy: socket.data.userId || socket.id,
-          }
-        : file
-    ));
+      room.files = room.files.map((file) => (
+        file.id === fileId
+          ? {
+              ...file,
+              content,
+              lastModified: Date.now(),
+              lastModifiedBy: socket.data.userId || socket.id,
+            }
+          : file
+      ));
 
-    // Log the edit
-    if (process.env.MONGODB_URI && file && user) {
-      const log = new Log({
-        roomId,
-        userId: user.id,
-        userName: user.name,
-        action: 'edit',
+      // Log the edit
+      if (file && user) {
+        addRoomLog(roomId, {
+          action: 'edit',
+          userId: user.id,
+          userName: user.name,
+          fileId,
+          fileName: file.name,
+          details: { previousLength: file.content.length, newLength: content.length },
+        });
+      }
+
+      if (process.env.MONGODB_URI && file && user) {
+        const log = new Log({
+          roomId,
+          userId: user.id,
+          userName: user.name,
+          action: 'edit',
+          fileId,
+          fileName: file.name,
+          details: { previousLength: file.content.length, newLength: content.length },
+        });
+        log.save().catch(err => console.error('Log save error:', err));
+      }
+
+      socket.to(roomId).emit('code-update', {
         fileId,
-        fileName: file.name,
-        details: { previousLength: file.content.length, newLength: content.length },
+        content,
+        lastModifiedBy: socket.data.userId || socket.id,
       });
-      log.save().catch(err => console.error('Log save error:', err));
-    }
-
-    socket.to(roomId).emit('code-update', {
-      fileId,
-      content,
-      lastModifiedBy: socket.data.userId || socket.id,
+      emitRoomState(roomId);
     });
-  });
-
   socket.on('add-file', ({ roomId, file }) => {
     const room = rooms.get(roomId);
     if (!room) return;
     room.files.push(file);
+
+    const user = room.users.find(u => u.id === socket.data.userId);
+    if (file && user) {
+      addRoomLog(roomId, {
+        action: 'add',
+        userId: user.id,
+        userName: user.name,
+        fileId: file.id,
+        fileName: file.name,
+      });
+    }
+
     emitRoomState(roomId);
   });
 
@@ -214,6 +261,16 @@ io.on('connection', (socket) => {
         ? { ...file, deleted: true, lastModified: Date.now(), lastModifiedBy: socket.data.userId || socket.id }
         : file
     ));
+
+    if (file && user) {
+      addRoomLog(roomId, {
+        action: 'delete',
+        userId: user.id,
+        userName: user.name,
+        fileId,
+        fileName: file.name,
+      });
+    }
 
     // Log the delete
     if (process.env.MONGODB_URI && file && user) {
@@ -242,6 +299,16 @@ io.on('connection', (socket) => {
         ? { ...file, deleted: false, lastModified: Date.now(), lastModifiedBy: socket.data.userId || socket.id }
         : file
     ));
+
+    if (file && user) {
+      addRoomLog(roomId, {
+        action: 'recover',
+        userId: user.id,
+        userName: user.name,
+        fileId,
+        fileName: file.name,
+      });
+    }
 
     // Log the recover
     if (process.env.MONGODB_URI && file && user) {

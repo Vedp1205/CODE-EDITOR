@@ -1,9 +1,5 @@
 import { useState } from 'react';
-<<<<<<< HEAD
-import { Download, FileCode2, FilePlus, Trash2, X } from 'lucide-react';
-=======
 import { Download, FileCode2, FilePlus, Trash2, X, RotateCcw } from 'lucide-react';
->>>>>>> cb039b4 (Add edit logging and admin file recovery features)
 import type { FileEntry, Language } from '../types';
 
 interface FileExplorerProps {
@@ -12,15 +8,10 @@ interface FileExplorerProps {
   onSelectFile: (fileId: string) => void;
   onAddFile: (name: string, language: Language) => void;
   onDeleteFile: (fileId: string) => void;
-<<<<<<< HEAD
-  onDownloadFile: (file: FileEntry) => void;
-  canManageFiles?: boolean;
-=======
   onRecoverFile: (fileId: string) => void;
   onDownloadFile: (file: FileEntry) => void;
   canManageFiles?: boolean;
   isAdmin?: boolean;
->>>>>>> cb039b4 (Add edit logging and admin file recovery features)
   className?: string;
   showCloseButton?: boolean;
   onClose?: () => void;
@@ -56,15 +47,10 @@ export function FileExplorer({
   onSelectFile,
   onAddFile,
   onDeleteFile,
-<<<<<<< HEAD
-  onDownloadFile,
-  canManageFiles = true,
-=======
   onRecoverFile,
   onDownloadFile,
   canManageFiles = true,
   isAdmin = false,
->>>>>>> cb039b4 (Add edit logging and admin file recovery features)
   className = '',
   showCloseButton = false,
   onClose,

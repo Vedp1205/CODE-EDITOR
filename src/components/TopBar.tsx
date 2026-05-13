@@ -6,6 +6,7 @@ import {
   Copy,
   Download,
   LogOut,
+  ListChecks,
   Menu,
   MessageCircle,
   Play,
@@ -24,6 +25,7 @@ interface TopBarProps {
   onOpenExplorer: () => void;
   onOpenUsers: () => void;
   onOpenChat: () => void;
+  onOpenHistory: () => void;
   onToggleExecution: () => void;
 }
 
@@ -130,6 +132,13 @@ export function TopBar({
             title="Open users"
           >
             <Users className="w-4 h-4" />
+          </button>
+          <button
+            onClick={onOpenHistory}
+            className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+            title="Open activity history"
+          >
+            <ListChecks className="w-4 h-4" />
           </button>
           <button
             onClick={onOpenChat}
