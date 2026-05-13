@@ -3,6 +3,7 @@ import type { User } from '../types';
 
 interface UserPresencePanelProps {
   users: User[];
+  ownerId: string;
   className?: string;
   showCloseButton?: boolean;
   onClose?: () => void;
@@ -10,6 +11,7 @@ interface UserPresencePanelProps {
 
 export function UserPresencePanel({
   users,
+  ownerId,
   className = '',
   showCloseButton = false,
   onClose,
@@ -42,6 +44,7 @@ export function UserPresencePanel({
       <div className="flex-1 overflow-y-auto py-2">
         {users.map(user => {
           const isActive = now - user.lastActive < 5000;
+          const isAdmin = user.id === ownerId;
           return (
             <div
               key={user.id}
@@ -62,7 +65,14 @@ export function UserPresencePanel({
               </div>
 
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">{user.name}</p>
+                <div className="flex items-center gap-2 min-w-0">
+                  <p className="text-sm font-medium text-white truncate">{user.name}</p>
+                  {isAdmin && (
+                    <span className="shrink-0 px-1.5 py-0.5 rounded-md bg-amber-500/15 border border-amber-400/20 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
+                      Admin
+                    </span>
+                  )}
+                </div>
                 {user.cursorPosition && (
                   <p className="text-xs text-slate-500 flex items-center gap-1">
                     <Wifi className="w-3 h-3" />

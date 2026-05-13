@@ -8,6 +8,7 @@ interface FileExplorerProps {
   onSelectFile: (fileId: string) => void;
   onAddFile: (name: string, language: Language) => void;
   onDeleteFile: (fileId: string) => void;
+  canManageFiles?: boolean;
   className?: string;
   showCloseButton?: boolean;
   onClose?: () => void;
@@ -43,6 +44,7 @@ export function FileExplorer({
   onSelectFile,
   onAddFile,
   onDeleteFile,
+  canManageFiles = true,
   className = '',
   showCloseButton = false,
   onClose,
@@ -65,13 +67,15 @@ export function FileExplorer({
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Explorer</h3>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsAdding(true)}
-              className="p-1.5 bg-indigo-500/20 text-indigo-400 rounded-lg hover:bg-indigo-500/30 transition-colors"
-              title="Add new file"
-            >
-              <FilePlus className="w-4 h-4" />
-            </button>
+            {canManageFiles && (
+              <button
+                onClick={() => setIsAdding(true)}
+                className="p-1.5 bg-indigo-500/20 text-indigo-400 rounded-lg hover:bg-indigo-500/30 transition-colors"
+                title="Add new file"
+              >
+                <FilePlus className="w-4 h-4" />
+              </button>
+            )}
             {showCloseButton && onClose && (
               <button
                 onClick={onClose}
@@ -126,6 +130,12 @@ export function FileExplorer({
             </div>
           </div>
         )}
+
+        {!canManageFiles && (
+          <div className="mt-3 rounded-xl border border-amber-400/10 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+            Only the room admin can add or remove files.
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto py-2">
@@ -148,15 +158,17 @@ export function FileExplorer({
               <p className="text-sm font-medium truncate">{file.name}</p>
               <p className="text-xs text-slate-500">{file.language || 'Plain Text'}</p>
             </div>
-            <button
-              onClick={e => {
-                e.stopPropagation();
-                onDeleteFile(file.id);
-              }}
-              className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1 text-slate-500 hover:text-red-400 transition-all"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
+            {canManageFiles && (
+              <button
+                onClick={e => {
+                  e.stopPropagation();
+                  onDeleteFile(file.id);
+                }}
+                className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1 text-slate-500 hover:text-red-400 transition-all"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         ))}
       </div>

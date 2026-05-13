@@ -38,6 +38,7 @@ export function App() {
   const [autoJoinAttempted, setAutoJoinAttempted] = useState(false);
 
   const activeFile = room?.files.find(f => f.id === activeFileId) || null;
+  const isAdmin = !!room && !!currentUser && room.owner === currentUser.id;
 
   useEffect(() => {
     if (!room) {
@@ -129,6 +130,7 @@ export function App() {
       <TopBar
         room={room}
         currentUser={currentUser}
+        isAdmin={isAdmin}
         onLeaveRoom={leaveRoom}
         onOpenExplorer={() => {
           setMobileUsersOpen(false);
@@ -200,6 +202,7 @@ export function App() {
           onSelectFile={setActiveFileId}
           onAddFile={addFile}
           onDeleteFile={deleteFile}
+          canManageFiles={isAdmin}
           className="hidden md:flex"
         />
 
@@ -257,7 +260,7 @@ export function App() {
           />
         </div>
 
-        <UserPresencePanel users={room.users} className="hidden xl:flex" />
+        <UserPresencePanel users={room.users} ownerId={room.owner} className="hidden xl:flex" />
 
         <ChatPanel
           messages={chatMessages}
@@ -311,6 +314,7 @@ export function App() {
             }}
             onAddFile={addFile}
             onDeleteFile={deleteFile}
+            canManageFiles={isAdmin}
             className="w-[86vw] max-w-sm shrink-0"
             showCloseButton
             onClose={closeMobilePanels}
@@ -327,6 +331,7 @@ export function App() {
           />
           <UserPresencePanel
             users={room.users}
+            ownerId={room.owner}
             className="w-[86vw] max-w-sm shrink-0"
             showCloseButton
             onClose={closeMobilePanels}

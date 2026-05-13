@@ -17,6 +17,7 @@ import type { User, Room } from '../types';
 interface TopBarProps {
   room: Room;
   currentUser: User;
+  isAdmin: boolean;
   onLeaveRoom: () => void;
   onOpenExplorer: () => void;
   onOpenUsers: () => void;
@@ -27,6 +28,7 @@ interface TopBarProps {
 export function TopBar({
   room,
   currentUser,
+  isAdmin,
   onLeaveRoom,
   onOpenExplorer,
   onOpenUsers,
@@ -80,9 +82,14 @@ export function TopBar({
             <h1 className="text-sm font-bold text-white leading-tight truncate max-w-36 sm:max-w-none">
               {room.name}
             </h1>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 flex-wrap">
               <Wifi className="w-3 h-3 text-green-400" />
               <span className="text-xs text-slate-400">Live</span>
+              {isAdmin && (
+                <span className="px-1.5 py-0.5 rounded-md bg-amber-500/15 border border-amber-400/20 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
+                  Admin
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -173,7 +180,7 @@ export function TopBar({
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-white">{currentUser.name}</p>
-                      <p className="text-xs text-slate-400">Room Owner</p>
+                      <p className="text-xs text-slate-400">{isAdmin ? 'Room Admin' : 'Collaborator'}</p>
                     </div>
                   </div>
                 </div>
@@ -198,6 +205,11 @@ export function TopBar({
                     <Users className="w-4 h-4" />
                     View All Users
                   </button>
+                  {isAdmin && (
+                    <div className="px-3 py-2 text-xs text-amber-300/90 bg-amber-500/10 border border-amber-400/10 rounded-lg mx-1 my-1">
+                      Admin controls: file management and room ownership
+                    </div>
+                  )}
                   <div className="my-1 border-t border-white/10" />
                   <button
                     onClick={onLeaveRoom}
