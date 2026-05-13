@@ -10,6 +10,9 @@ import { CodeExecutionPanel } from './components/CodeExecutionPanel';
 import { ArchitectureDiagram } from './components/ArchitectureDiagram';
 import { useRoom } from './hooks/useRoom';
 
+const LAST_ROOM_KEY = 'codecollab:last-room-id';
+const LAST_USER_KEY = 'codecollab:last-user-name';
+
 export function App() {
   const sharedRoomId = new URLSearchParams(window.location.search).get('room')?.trim() || '';
   const {
@@ -32,6 +35,7 @@ export function App() {
   const [archOpen, setArchOpen] = useState(false);
   const [mobileExplorerOpen, setMobileExplorerOpen] = useState(false);
   const [mobileUsersOpen, setMobileUsersOpen] = useState(false);
+  const [autoJoinAttempted, setAutoJoinAttempted] = useState(false);
 
   const activeFile = room?.files.find(f => f.id === activeFileId) || null;
 
@@ -70,6 +74,31 @@ export function App() {
     setMobileUsersOpen(false);
     setChatOpen(false);
   }, []);
+
+  useEffect(() => {
+    if (!room || !currentUser) return;
+
+    const nextUrl = `${window.location.pathname}?room=${room.id}`;
+    window.history.replaceState({}, '', nextUrl);
+    window.localStorage.setItem(LAST_ROOM_KEY, room.id);
+    window.localStorage.setItem(LAST_USER_KEY, currentUser.name);
+  }, [room, currentUser]);
+
+  useEffect(() => {
+    if (isJoined || autoJoinAttempted) return;
+
+    const rememberedUser = window.localStorage.getItem(LAST_USER_KEY)?.trim() || '';
+    const rememberedRoom = window.localStorage.getItem(LAST_ROOM_KEY)?.trim() || '';
+    const roomToJoin = sharedRoomId || rememberedRoom;
+
+    if (roomToJoin && rememberedUser) {
+      joinRoom(roomToJoin, rememberedUser);
+      setAutoJoinAttempted(true);
+      return;
+    }
+
+    setAutoJoinAttempted(true);
+  }, [autoJoinAttempted, isJoined, joinRoom, sharedRoomId]);
 
   if (!isJoined) {
     return (
