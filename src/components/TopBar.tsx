@@ -38,6 +38,7 @@ export function TopBar({
   onOpenExplorer,
   onOpenUsers,
   onOpenChat,
+  onOpenHistory,
   onToggleExecution,
 }: TopBarProps) {
   const [copied, setCopied] = useState(false);
