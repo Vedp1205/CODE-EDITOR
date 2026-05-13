@@ -14,6 +14,18 @@ export interface FileEntry {
   content: string;
   lastModified: number;
   lastModifiedBy: string;
+  deleted?: boolean;
+}
+
+export interface LogEntry {
+  id: string;
+  action: 'create' | 'edit' | 'add' | 'delete' | 'recover';
+  userId: string;
+  userName: string;
+  fileId?: string;
+  fileName?: string;
+  timestamp: number;
+  details?: Record<string, unknown>;
 }
 
 export interface Room {
@@ -22,6 +34,7 @@ export interface Room {
   owner: string;
   files: FileEntry[];
   users: User[];
+  logs: LogEntry[];
   createdAt: number;
   isPublic: boolean;
 }

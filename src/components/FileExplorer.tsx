@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Download, FileCode2, FilePlus, Trash2, X } from 'lucide-react';
+import { Download, FileCode2, FilePlus, Trash2, X, RotateCcw } from 'lucide-react';
 import type { FileEntry, Language } from '../types';
 
 interface FileExplorerProps {
@@ -8,8 +8,10 @@ interface FileExplorerProps {
   onSelectFile: (fileId: string) => void;
   onAddFile: (name: string, language: Language) => void;
   onDeleteFile: (fileId: string) => void;
+  onRecoverFile: (fileId: string) => void;
   onDownloadFile: (file: FileEntry) => void;
   canManageFiles?: boolean;
+  isAdmin?: boolean;
   className?: string;
   showCloseButton?: boolean;
   onClose?: () => void;
@@ -45,8 +47,10 @@ export function FileExplorer({
   onSelectFile,
   onAddFile,
   onDeleteFile,
+  onRecoverFile,
   onDownloadFile,
   canManageFiles = true,
+  isAdmin = false,
   className = '',
   showCloseButton = false,
   onClose,
@@ -141,13 +145,15 @@ export function FileExplorer({
       </div>
 
       <div className="flex-1 overflow-y-auto py-2">
-        {files.map(file => (
+        {files.filter(file => !file.deleted || isAdmin).map(file => (
           <div
             key={file.id}
             onClick={() => onSelectFile(file.id)}
             className={`group flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg cursor-pointer transition-all duration-200 ${
               activeFileId === file.id
                 ? 'bg-indigo-500/20 text-white border-l-2 border-indigo-500'
+                : file.deleted
+                ? 'text-slate-500 opacity-60 border-l-2 border-red-500/50'
                 : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border-l-2 border-transparent'
             }`}
           >
@@ -170,7 +176,19 @@ export function FileExplorer({
             >
               <Download className="w-3.5 h-3.5" />
             </button>
-            {canManageFiles && (
+            {file.deleted && isAdmin && (
+              <button
+                onClick={e => {
+                  e.stopPropagation();
+                  onRecoverFile(file.id);
+                }}
+                className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1 text-slate-500 hover:text-green-400 transition-all"
+                title="Recover file"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+              </button>
+            )}
+            {canManageFiles && !file.deleted && (
               <button
                 onClick={e => {
                   e.stopPropagation();
