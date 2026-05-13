@@ -1,16 +1,24 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Code2, Users, Zap, Globe, ArrowRight, Sparkles } from 'lucide-react';
 
 interface WelcomeScreenProps {
   onCreateRoom: (name: string, userName: string) => void;
   onJoinRoom: (roomId: string, userName: string) => void;
+  initialRoomId?: string;
 }
 
-export function WelcomeScreen({ onCreateRoom, onJoinRoom }: WelcomeScreenProps) {
+export function WelcomeScreen({ onCreateRoom, onJoinRoom, initialRoomId = '' }: WelcomeScreenProps) {
   const [mode, setMode] = useState<'welcome' | 'create' | 'join'>('welcome');
   const [roomName, setRoomName] = useState('');
   const [userName, setUserName] = useState('');
   const [roomId, setRoomId] = useState('');
+
+  useEffect(() => {
+    if (initialRoomId) {
+      setRoomId(initialRoomId);
+      setMode('join');
+    }
+  }, [initialRoomId]);
 
   const handleCreate = () => {
     if (roomName.trim()) {

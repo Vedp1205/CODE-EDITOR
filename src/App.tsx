@@ -11,6 +11,7 @@ import { ArchitectureDiagram } from './components/ArchitectureDiagram';
 import { useRoom } from './hooks/useRoom';
 
 export function App() {
+  const sharedRoomId = new URLSearchParams(window.location.search).get('room')?.trim() || '';
   const {
     room,
     currentUser,
@@ -73,7 +74,11 @@ export function App() {
   if (!isJoined) {
     return (
       <>
-        <WelcomeScreen onCreateRoom={handleCreateRoom} onJoinRoom={handleJoinRoom} />
+        <WelcomeScreen
+          onCreateRoom={handleCreateRoom}
+          onJoinRoom={handleJoinRoom}
+          initialRoomId={sharedRoomId}
+        />
         <ArchitectureDiagram isOpen={archOpen} onClose={() => setArchOpen(false)} />
       </>
     );
