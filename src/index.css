@@ -50,6 +50,15 @@ html, body, #root {
   animation: shimmer 2s infinite;
 }
 
+.codecollab-select {
+  color-scheme: dark;
+}
+
+.codecollab-select option {
+  background-color: rgb(15 23 42);
+  color: rgb(241 245 249);
+}
+
 /* Keep native form controls readable in dark UI */
 .codecollab-select {
   color-scheme: dark;

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Play, Loader2, CheckCircle, AlertCircle, RotateCcw } from 'lucide-react';
+import { AlertCircle, CheckCircle, Loader2, Play, RotateCcw } from 'lucide-react';
 
 interface CodeExecutionPanelProps {
   isOpen: boolean;
@@ -19,7 +19,7 @@ const SIMULATED_OUTPUTS: Record<string, OutputLine[]> = {
     { type: 'info', text: 'Execution time: 12ms' },
   ],
   python: [
-    { type: 'stdout', text: "Original: [64, 34, 25, 12, 22, 11, 90]" },
+    { type: 'stdout', text: 'Original: [64, 34, 25, 12, 22, 11, 90]' },
     { type: 'stdout', text: 'Sorted: [11, 12, 22, 25, 34, 64, 90]' },
     { type: 'stdout', text: 'Index of 22: 2' },
     { type: 'info', text: 'Process exited with code 0' },
@@ -44,7 +44,6 @@ export function CodeExecutionPanel({ isOpen, onToggle }: CodeExecutionPanelProps
     setOutput([]);
     setHasRun(true);
 
-    // Simulate compilation and execution
     setTimeout(() => {
       setOutput([
         { type: 'info', text: 'Compiling...' },
@@ -69,7 +68,7 @@ export function CodeExecutionPanel({ isOpen, onToggle }: CodeExecutionPanelProps
     return (
       <button
         onClick={onToggle}
-        className="px-4 py-2 bg-emerald-500/20 text-emerald-400 text-sm font-medium rounded-lg hover:bg-emerald-500/30 transition-colors flex items-center gap-2"
+        className="px-4 py-2 bg-emerald-500/20 text-emerald-400 text-sm font-medium rounded-lg hover:bg-emerald-500/30 transition-colors flex items-center justify-center gap-2 w-full sm:w-auto"
       >
         <Play className="w-4 h-4" />
         Run Code
@@ -78,8 +77,7 @@ export function CodeExecutionPanel({ isOpen, onToggle }: CodeExecutionPanelProps
   }
 
   return (
-    <div className="bg-slate-950/95 backdrop-blur-xl border-t border-white/10 flex flex-col" style={{ height: '200px' }}>
-      {/* Header */}
+    <div className="bg-slate-950/95 backdrop-blur-xl border-t border-white/10 flex flex-col h-56 sm:h-52">
       <div className="flex items-center justify-between px-4 py-2 border-b border-white/10">
         <div className="flex items-center gap-3">
           <h3 className="text-sm font-semibold text-white">Output</h3>
@@ -113,7 +111,6 @@ export function CodeExecutionPanel({ isOpen, onToggle }: CodeExecutionPanelProps
         </div>
       </div>
 
-      {/* Output Content */}
       <div className="flex-1 overflow-y-auto p-4 font-mono text-sm">
         {output.length === 0 && !isRunning && (
           <div className="text-center py-4">
@@ -122,11 +119,12 @@ export function CodeExecutionPanel({ isOpen, onToggle }: CodeExecutionPanelProps
           </div>
         )}
         {output.map((line, i) => (
-          <div key={i} className={`flex items-start gap-2 mb-1 ${
-            line.type === 'stderr' ? 'text-red-400' :
-            line.type === 'info' ? 'text-slate-500' :
-            'text-green-400'
-          }`}>
+          <div
+            key={i}
+            className={`flex items-start gap-2 mb-1 ${
+              line.type === 'stderr' ? 'text-red-400' : line.type === 'info' ? 'text-slate-500' : 'text-green-400'
+            }`}
+          >
             <span className="text-slate-600 select-none w-6 text-right shrink-0">{i + 1}</span>
             <span className="break-all">{line.text}</span>
           </div>
@@ -139,12 +137,11 @@ export function CodeExecutionPanel({ isOpen, onToggle }: CodeExecutionPanelProps
         )}
       </div>
 
-      {/* Run Button */}
       <div className="px-4 py-2 border-t border-white/10">
         <button
           onClick={handleRun}
           disabled={isRunning}
-          className="px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          className="px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 w-full sm:w-auto"
         >
           <Play className="w-4 h-4" />
           {isRunning ? 'Running...' : 'Run Code'}

@@ -1,7 +1,16 @@
 import { useState, useEffect } from 'react';
 import {
-  Code2, Copy, Share2, LogOut, Users, Wifi,
-  ChevronDown
+  CheckCircle,
+  ChevronDown,
+  Code2,
+  Copy,
+  LogOut,
+  Menu,
+  MessageCircle,
+  Play,
+  Share2,
+  Users,
+  Wifi,
 } from 'lucide-react';
 import type { User, Room } from '../types';
 
@@ -9,9 +18,21 @@ interface TopBarProps {
   room: Room;
   currentUser: User;
   onLeaveRoom: () => void;
+  onOpenExplorer: () => void;
+  onOpenUsers: () => void;
+  onOpenChat: () => void;
+  onToggleExecution: () => void;
 }
 
-export function TopBar({ room, currentUser, onLeaveRoom }: TopBarProps) {
+export function TopBar({
+  room,
+  currentUser,
+  onLeaveRoom,
+  onOpenExplorer,
+  onOpenUsers,
+  onOpenChat,
+  onToggleExecution,
+}: TopBarProps) {
   const [copied, setCopied] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
 
@@ -30,7 +51,6 @@ export function TopBar({ room, currentUser, onLeaveRoom }: TopBarProps) {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
     } catch {
-      // Fallback
       const textArea = document.createElement('textarea');
       textArea.value = shareUrl;
       document.body.appendChild(textArea);
@@ -42,15 +62,24 @@ export function TopBar({ room, currentUser, onLeaveRoom }: TopBarProps) {
   };
 
   return (
-    <div className="h-14 bg-slate-900/80 backdrop-blur-xl border-b border-white/10 flex items-center justify-between px-4 z-50">
-      {/* Left Side */}
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2.5">
+    <div className="h-14 bg-slate-900/80 backdrop-blur-xl border-b border-white/10 flex items-center justify-between px-3 sm:px-4 z-50">
+      <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+        <button
+          onClick={onOpenExplorer}
+          className="md:hidden p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+          title="Open files"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
+        <div className="flex items-center gap-2.5 min-w-0">
           <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
             <Code2 className="w-4 h-4 text-white" />
           </div>
-          <div>
-            <h1 className="text-sm font-bold text-white leading-tight">{room.name}</h1>
+          <div className="min-w-0">
+            <h1 className="text-sm font-bold text-white leading-tight truncate max-w-36 sm:max-w-none">
+              {room.name}
+            </h1>
             <div className="flex items-center gap-1.5">
               <Wifi className="w-3 h-3 text-green-400" />
               <span className="text-xs text-slate-400">Live</span>
@@ -58,22 +87,42 @@ export function TopBar({ room, currentUser, onLeaveRoom }: TopBarProps) {
           </div>
         </div>
 
-        {/* Room ID */}
         <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg">
           <span className="text-xs text-slate-400">Room ID:</span>
           <code className="text-xs text-indigo-400 font-mono">{roomId.slice(0, 8)}...</code>
         </div>
 
-        {/* User Count */}
         <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg">
           <Users className="w-3.5 h-3.5 text-slate-400" />
           <span className="text-xs text-slate-300">{room.users.length} online</span>
         </div>
       </div>
 
-      {/* Right Side */}
-      <div className="flex items-center gap-3">
-        {/* Share */}
+      <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex md:hidden items-center gap-1">
+          <button
+            onClick={onToggleExecution}
+            className="p-2 text-emerald-300 hover:text-white hover:bg-emerald-500/10 rounded-lg transition-colors"
+            title="Run code"
+          >
+            <Play className="w-4 h-4" />
+          </button>
+          <button
+            onClick={onOpenUsers}
+            className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+            title="Open users"
+          >
+            <Users className="w-4 h-4" />
+          </button>
+          <button
+            onClick={onOpenChat}
+            className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+            title="Open chat"
+          >
+            <MessageCircle className="w-4 h-4" />
+          </button>
+        </div>
+
         <button
           onClick={handleCopy}
           className={`hidden sm:flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${
@@ -95,23 +144,21 @@ export function TopBar({ room, currentUser, onLeaveRoom }: TopBarProps) {
           )}
         </button>
 
-        {/* Current User */}
         <div className="relative">
           <button
             onClick={() => setShowMenu(!showMenu)}
-            className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors"
+            className="flex items-center gap-2 px-2 sm:px-3 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors"
           >
             <div
               className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
-              style={{ backgroundColor: currentUser?.color }}
+              style={{ backgroundColor: currentUser.color }}
             >
-              {currentUser?.avatar}
+              {currentUser.avatar}
             </div>
-            <span className="hidden sm:block text-sm text-slate-300">{currentUser?.name}</span>
+            <span className="hidden sm:block text-sm text-slate-300 max-w-24 truncate">{currentUser.name}</span>
             <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${showMenu ? 'rotate-180' : ''}`} />
           </button>
 
-          {/* Dropdown Menu */}
           {showMenu && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
@@ -120,12 +167,12 @@ export function TopBar({ room, currentUser, onLeaveRoom }: TopBarProps) {
                   <div className="flex items-center gap-3">
                     <div
                       className="w-10 h-10 rounded-full flex items-center justify-center text-lg"
-                      style={{ backgroundColor: currentUser?.color + '30' }}
+                      style={{ backgroundColor: `${currentUser.color}30` }}
                     >
-                      {currentUser?.avatar}
+                      {currentUser.avatar}
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-white">{currentUser?.name}</p>
+                      <p className="text-sm font-semibold text-white">{currentUser.name}</p>
                       <p className="text-xs text-slate-400">Room Owner</p>
                     </div>
                   </div>
@@ -143,6 +190,7 @@ export function TopBar({ room, currentUser, onLeaveRoom }: TopBarProps) {
                   </button>
                   <button
                     onClick={() => {
+                      onOpenUsers();
                       setShowMenu(false);
                     }}
                     className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 rounded-lg transition-colors"
@@ -167,6 +215,3 @@ export function TopBar({ room, currentUser, onLeaveRoom }: TopBarProps) {
     </div>
   );
 }
-
-// Need CheckCircle import
-import { CheckCircle } from 'lucide-react';

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, MessageCircle, X } from 'lucide-react';
+import { MessageCircle, Send, X } from 'lucide-react';
 import type { ChatMessage } from '../types';
 
 interface ChatPanelProps {
@@ -7,9 +7,10 @@ interface ChatPanelProps {
   onSendMessage: (text: string) => void;
   isOpen: boolean;
   onToggle: () => void;
+  className?: string;
 }
 
-export function ChatPanel({ messages, onSendMessage, isOpen, onToggle }: ChatPanelProps) {
+export function ChatPanel({ messages, onSendMessage, isOpen, onToggle, className = '' }: ChatPanelProps) {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -28,7 +29,7 @@ export function ChatPanel({ messages, onSendMessage, isOpen, onToggle }: ChatPan
     return (
       <button
         onClick={onToggle}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full shadow-2xl shadow-indigo-500/40 flex items-center justify-center hover:scale-110 transition-transform z-50"
+        className="fixed bottom-4 md:bottom-6 right-4 md:right-6 w-14 h-14 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full shadow-2xl shadow-indigo-500/40 flex items-center justify-center hover:scale-110 transition-transform z-50"
       >
         <MessageCircle className="w-6 h-6" />
         {messages.length > 0 && (
@@ -41,8 +42,7 @@ export function ChatPanel({ messages, onSendMessage, isOpen, onToggle }: ChatPan
   }
 
   return (
-    <div className="w-80 bg-slate-900/95 backdrop-blur-xl border-l border-white/10 flex flex-col h-full">
-      {/* Header */}
+    <div className={`w-80 bg-slate-900/95 backdrop-blur-xl border-l border-white/10 flex flex-col h-full ${className}`}>
       <div className="p-4 border-b border-white/10 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-indigo-500/20 rounded-lg flex items-center justify-center">
@@ -61,7 +61,6 @@ export function ChatPanel({ messages, onSendMessage, isOpen, onToggle }: ChatPan
         </button>
       </div>
 
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && (
           <div className="text-center py-8">
@@ -98,7 +97,6 @@ export function ChatPanel({ messages, onSendMessage, isOpen, onToggle }: ChatPan
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
       <div className="p-4 border-t border-white/10">
         <div className="flex gap-2">
           <input

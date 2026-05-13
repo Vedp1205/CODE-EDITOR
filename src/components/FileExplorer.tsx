@@ -1,7 +1,5 @@
 import { useState } from 'react';
-import {
-  FilePlus, Trash2, FileCode2,
-} from 'lucide-react';
+import { FileCode2, FilePlus, Trash2, X } from 'lucide-react';
 import type { FileEntry, Language } from '../types';
 
 interface FileExplorerProps {
@@ -10,6 +8,9 @@ interface FileExplorerProps {
   onSelectFile: (fileId: string) => void;
   onAddFile: (name: string, language: Language) => void;
   onDeleteFile: (fileId: string) => void;
+  className?: string;
+  showCloseButton?: boolean;
+  onClose?: () => void;
 }
 
 const LANGUAGE_ICONS: Record<string, string> = {
@@ -36,7 +37,16 @@ const LANGUAGE_COLORS: Record<string, string> = {
   markdown: 'text-slate-400',
 };
 
-export function FileExplorer({ files, activeFileId, onSelectFile, onAddFile, onDeleteFile }: FileExplorerProps) {
+export function FileExplorer({
+  files,
+  activeFileId,
+  onSelectFile,
+  onAddFile,
+  onDeleteFile,
+  className = '',
+  showCloseButton = false,
+  onClose,
+}: FileExplorerProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [newFileName, setNewFileName] = useState('');
   const [newFileLang, setNewFileLang] = useState<Language>('javascript');
@@ -50,21 +60,30 @@ export function FileExplorer({ files, activeFileId, onSelectFile, onAddFile, onD
   };
 
   return (
-    <div className="w-64 bg-slate-900/80 backdrop-blur-xl border-r border-white/10 flex flex-col h-full">
-      {/* Header */}
+    <div className={`w-64 bg-slate-900/80 backdrop-blur-xl border-r border-white/10 flex flex-col h-full ${className}`}>
       <div className="p-4 border-b border-white/10">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Explorer</h3>
-          <button
-            onClick={() => setIsAdding(true)}
-            className="p-1.5 bg-indigo-500/20 text-indigo-400 rounded-lg hover:bg-indigo-500/30 transition-colors"
-            title="Add new file"
-          >
-            <FilePlus className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsAdding(true)}
+              className="p-1.5 bg-indigo-500/20 text-indigo-400 rounded-lg hover:bg-indigo-500/30 transition-colors"
+              title="Add new file"
+            >
+              <FilePlus className="w-4 h-4" />
+            </button>
+            {showCloseButton && onClose && (
+              <button
+                onClick={onClose}
+                className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                title="Close explorer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Add file form */}
         {isAdding && (
           <div className="bg-white/5 border border-white/10 rounded-xl p-3 space-y-2">
             <input
@@ -109,7 +128,6 @@ export function FileExplorer({ files, activeFileId, onSelectFile, onAddFile, onD
         )}
       </div>
 
-      {/* File List */}
       <div className="flex-1 overflow-y-auto py-2">
         {files.map(file => (
           <div
@@ -135,7 +153,7 @@ export function FileExplorer({ files, activeFileId, onSelectFile, onAddFile, onD
                 e.stopPropagation();
                 onDeleteFile(file.id);
               }}
-              className="opacity-0 group-hover:opacity-100 p-1 text-slate-500 hover:text-red-400 transition-all"
+              className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1 text-slate-500 hover:text-red-400 transition-all"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
@@ -143,7 +161,6 @@ export function FileExplorer({ files, activeFileId, onSelectFile, onAddFile, onD
         ))}
       </div>
 
-      {/* Footer */}
       <div className="p-4 border-t border-white/10">
         <div className="flex items-center gap-2 text-xs text-slate-500">
           <FileCode2 className="w-4 h-4" />
