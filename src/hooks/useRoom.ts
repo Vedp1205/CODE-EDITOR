@@ -16,13 +16,14 @@ function generateId(): string {
   return Math.random().toString(36).substring(2, 11);
 }
 
-function createUser(userName: string): User {
+function createUser(userInput: string | Partial<User>): User {
   const idx = Math.floor(Math.random() * COLORS.length);
+  const nextName = typeof userInput === 'string' ? userInput : userInput.name;
   return {
-    id: generateId(),
-    name: userName || `User_${Math.floor(Math.random() * 9999)}`,
-    color: COLORS[idx],
-    avatar: AVATARS[idx],
+    id: typeof userInput === 'string' ? generateId() : (userInput.id || generateId()),
+    name: nextName || `User_${Math.floor(Math.random() * 9999)}`,
+    color: typeof userInput === 'string' ? COLORS[idx] : (userInput.color || COLORS[idx]),
+    avatar: typeof userInput === 'string' ? AVATARS[idx] : (userInput.avatar || AVATARS[idx]),
     lastActive: Date.now(),
   };
 }
@@ -139,8 +140,8 @@ export function useRoom() {
     };
   }, [getSocket]);
 
-  const createRoom = useCallback((roomName: string, userName: string) => {
-    const user = createUser(userName);
+  const createRoom = useCallback((roomName: string, userInput: string | Partial<User>) => {
+    const user = createUser(userInput);
     currentUserRef.current = user;
     setCurrentUser(user);
     setChatMessages([]);
@@ -157,8 +158,8 @@ export function useRoom() {
     });
   }, [getSocket]);
 
-  const joinRoom = useCallback((roomId: string, userName: string) => {
-    const user = createUser(userName);
+  const joinRoom = useCallback((roomId: string, userInput: string | Partial<User>) => {
+    const user = createUser(userInput);
     currentUserRef.current = user;
     setCurrentUser(user);
     setChatMessages([]);

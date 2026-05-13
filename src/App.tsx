@@ -9,9 +9,24 @@ import { ChatPanel } from './components/ChatPanel';
 import { ActivityPanel } from './components/ActivityPanel';
 import { CodeExecutionPanel } from './components/CodeExecutionPanel';
 import { useRoom } from './hooks/useRoom';
+import type { User } from './types';
 
 const LAST_ROOM_KEY = 'codecollab:last-room-id';
 const LAST_USER_KEY = 'codecollab:last-user-name';
+const LAST_USER_STATE_KEY = 'codecollab:last-user-state';
+
+function getRememberedUserState(): Partial<User> | null {
+  const raw = window.localStorage.getItem(LAST_USER_STATE_KEY);
+  if (!raw) return null;
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<User>;
+    if (!parsed || typeof parsed !== 'object') return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
 
 export function App() {
   const sharedRoomId = new URLSearchParams(window.location.search).get('room')?.trim() || '';
@@ -111,6 +126,12 @@ export function App() {
     window.history.replaceState({}, '', nextUrl);
     window.localStorage.setItem(LAST_ROOM_KEY, room.id);
     window.localStorage.setItem(LAST_USER_KEY, currentUser.name);
+    window.localStorage.setItem(LAST_USER_STATE_KEY, JSON.stringify({
+      id: currentUser.id,
+      name: currentUser.name,
+      color: currentUser.color,
+      avatar: currentUser.avatar,
+    }));
   }, [room, currentUser]);
 
   useEffect(() => {
@@ -118,10 +139,11 @@ export function App() {
 
     const rememberedUser = window.localStorage.getItem(LAST_USER_KEY)?.trim() || '';
     const rememberedRoom = window.localStorage.getItem(LAST_ROOM_KEY)?.trim() || '';
+    const rememberedUserState = getRememberedUserState();
     const roomToJoin = sharedRoomId || rememberedRoom;
 
     if (roomToJoin && rememberedUser) {
-      joinRoom(roomToJoin, rememberedUser);
+      joinRoom(roomToJoin, rememberedUserState?.name ? rememberedUserState : rememberedUser);
       setAutoJoinAttempted(true);
       return;
     }

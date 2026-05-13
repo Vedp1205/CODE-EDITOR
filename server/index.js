@@ -172,6 +172,7 @@ function flushPendingEditLog(key) {
   clearTimeout(pendingEdit.timer);
   pendingEditLogs.delete(key);
   persistEditLog(pendingEdit.roomId, pendingEdit);
+  emitRoomState(pendingEdit.roomId);
 }
 
 function queueEditLog({ roomId, userId, userName, fileId, fileName, previousContent, newContent }) {
