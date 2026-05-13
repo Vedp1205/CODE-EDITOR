@@ -96,6 +96,15 @@ function emitRoomState(roomId) {
   }
 }
 
+function findSocketByUserId(roomId, userId) {
+  for (const socket of io.sockets.sockets.values()) {
+    if (socket.data.roomId === roomId && socket.data.userId === userId) {
+      return socket;
+    }
+  }
+  return null;
+}
+
 io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id}`);
 
@@ -187,6 +196,25 @@ io.on('connection', (socket) => {
 
   socket.on('chat-message', ({ roomId, message }) => {
     io.to(roomId).emit('new-message', message);
+  });
+
+  socket.on('kick-member', ({ roomId, targetUserId }) => {
+    const room = rooms.get(roomId);
+    if (!room) return;
+    if (room.owner !== socket.data.userId) return;
+    if (room.owner === targetUserId) return;
+
+    const targetSocket = findSocketByUserId(roomId, targetUserId);
+    room.users = room.users.filter((user) => user.id !== targetUserId);
+
+    if (targetSocket) {
+      targetSocket.emit('kicked', { roomId });
+      targetSocket.leave(roomId);
+      targetSocket.data.roomId = null;
+    }
+
+    io.to(roomId).emit('user-left', targetUserId);
+    emitRoomState(roomId);
   });
 
   socket.on('disconnecting', () => {

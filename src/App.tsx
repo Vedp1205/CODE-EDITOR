@@ -26,6 +26,7 @@ export function App() {
     addFile,
     deleteFile,
     sendChatMessage,
+    kickMember,
     leaveRoom,
   } = useRoom();
 
@@ -69,6 +70,25 @@ export function App() {
       updateFileContent(activeFileId, content);
     }
   }, [activeFileId, updateFileContent]);
+
+  const handleDownloadFile = useCallback((file: { name: string; content: string }) => {
+    const blob = new Blob([file.content], { type: 'text/plain;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = file.name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }, []);
+
+  const handleKickMember = useCallback((user: { id: string; name: string }) => {
+    const confirmed = window.confirm(`Remove ${user.name} from this room?`);
+    if (confirmed) {
+      kickMember(user.id);
+    }
+  }, [kickMember]);
 
   const closeMobilePanels = useCallback(() => {
     setMobileExplorerOpen(false);
@@ -132,6 +152,7 @@ export function App() {
         currentUser={currentUser}
         isAdmin={isAdmin}
         onLeaveRoom={leaveRoom}
+        onDownloadActiveFile={() => activeFile && handleDownloadFile(activeFile)}
         onOpenExplorer={() => {
           setMobileUsersOpen(false);
           setChatOpen(false);
@@ -202,6 +223,7 @@ export function App() {
           onSelectFile={setActiveFileId}
           onAddFile={addFile}
           onDeleteFile={deleteFile}
+          onDownloadFile={handleDownloadFile}
           canManageFiles={isAdmin}
           className="hidden md:flex"
         />
@@ -260,7 +282,14 @@ export function App() {
           />
         </div>
 
-        <UserPresencePanel users={room.users} ownerId={room.owner} className="hidden xl:flex" />
+        <UserPresencePanel
+          users={room.users}
+          ownerId={room.owner}
+          currentUserId={currentUser.id}
+          canKickMembers={isAdmin}
+          onKickMember={handleKickMember}
+          className="hidden xl:flex"
+        />
 
         <ChatPanel
           messages={chatMessages}
@@ -314,6 +343,7 @@ export function App() {
             }}
             onAddFile={addFile}
             onDeleteFile={deleteFile}
+            onDownloadFile={handleDownloadFile}
             canManageFiles={isAdmin}
             className="w-[86vw] max-w-sm shrink-0"
             showCloseButton
@@ -332,6 +362,9 @@ export function App() {
           <UserPresencePanel
             users={room.users}
             ownerId={room.owner}
+            currentUserId={currentUser.id}
+            canKickMembers={isAdmin}
+            onKickMember={handleKickMember}
             className="w-[86vw] max-w-sm shrink-0"
             showCloseButton
             onClose={closeMobilePanels}

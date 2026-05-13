@@ -105,11 +105,26 @@ export function useRoom() {
       });
     };
 
+    const handleKicked = ({ roomId }: { roomId: string }) => {
+      if (roomIdRef.current === roomId) {
+        window.localStorage.removeItem('codecollab:last-room-id');
+        setIsJoined(false);
+        setRoom(null);
+        setCurrentUser(null);
+        setChatMessages([]);
+        roomIdRef.current = null;
+        currentUserRef.current = null;
+        window.history.replaceState({}, '', window.location.pathname);
+        window.alert('You were removed from this room by the admin.');
+      }
+    };
+
     socket.on('room-state', handleRoomState);
     socket.on('code-update', handleCodeUpdate);
     socket.on('cursor-update', handleCursorUpdate);
     socket.on('new-message', handleNewMessage);
     socket.on('user-left', handleUserLeft);
+    socket.on('kicked', handleKicked);
 
     return () => {
       socket.off('room-state', handleRoomState);
@@ -117,6 +132,7 @@ export function useRoom() {
       socket.off('cursor-update', handleCursorUpdate);
       socket.off('new-message', handleNewMessage);
       socket.off('user-left', handleUserLeft);
+      socket.off('kicked', handleKicked);
       socket.disconnect();
       socketRef.current = null;
     };
@@ -240,6 +256,12 @@ export function useRoom() {
     setChatMessages([]);
   }, [getSocket]);
 
+  const kickMember = useCallback((targetUserId: string) => {
+    const roomId = roomIdRef.current;
+    if (!roomId) return;
+    getSocket().emit('kick-member', { roomId, targetUserId });
+  }, [getSocket]);
+
   return {
     room,
     currentUser,
@@ -251,6 +273,7 @@ export function useRoom() {
     addFile,
     deleteFile,
     sendChatMessage,
+    kickMember,
     leaveRoom,
   };
 }

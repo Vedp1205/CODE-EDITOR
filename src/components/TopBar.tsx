@@ -4,6 +4,7 @@ import {
   ChevronDown,
   Code2,
   Copy,
+  Download,
   LogOut,
   Menu,
   MessageCircle,
@@ -19,6 +20,7 @@ interface TopBarProps {
   currentUser: User;
   isAdmin: boolean;
   onLeaveRoom: () => void;
+  onDownloadActiveFile: () => void;
   onOpenExplorer: () => void;
   onOpenUsers: () => void;
   onOpenChat: () => void;
@@ -30,6 +32,7 @@ export function TopBar({
   currentUser,
   isAdmin,
   onLeaveRoom,
+  onDownloadActiveFile,
   onOpenExplorer,
   onOpenUsers,
   onOpenChat,
@@ -108,6 +111,13 @@ export function TopBar({
       <div className="flex items-center gap-2 sm:gap-3">
         <div className="flex md:hidden items-center gap-1">
           <button
+            onClick={onDownloadActiveFile}
+            className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+            title="Download file"
+          >
+            <Download className="w-4 h-4" />
+          </button>
+          <button
             onClick={onToggleExecution}
             className="p-2 text-emerald-300 hover:text-white hover:bg-emerald-500/10 rounded-lg transition-colors"
             title="Run code"
@@ -149,6 +159,14 @@ export function TopBar({
               Share
             </>
           )}
+        </button>
+
+        <button
+          onClick={onDownloadActiveFile}
+          className="hidden sm:flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10 transition-all duration-300"
+        >
+          <Download className="w-4 h-4" />
+          Download
         </button>
 
         <div className="relative">

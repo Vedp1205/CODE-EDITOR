@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FileCode2, FilePlus, Trash2, X } from 'lucide-react';
+import { Download, FileCode2, FilePlus, Trash2, X } from 'lucide-react';
 import type { FileEntry, Language } from '../types';
 
 interface FileExplorerProps {
@@ -8,6 +8,7 @@ interface FileExplorerProps {
   onSelectFile: (fileId: string) => void;
   onAddFile: (name: string, language: Language) => void;
   onDeleteFile: (fileId: string) => void;
+  onDownloadFile: (file: FileEntry) => void;
   canManageFiles?: boolean;
   className?: string;
   showCloseButton?: boolean;
@@ -44,6 +45,7 @@ export function FileExplorer({
   onSelectFile,
   onAddFile,
   onDeleteFile,
+  onDownloadFile,
   canManageFiles = true,
   className = '',
   showCloseButton = false,
@@ -158,6 +160,16 @@ export function FileExplorer({
               <p className="text-sm font-medium truncate">{file.name}</p>
               <p className="text-xs text-slate-500">{file.language || 'Plain Text'}</p>
             </div>
+            <button
+              onClick={e => {
+                e.stopPropagation();
+                onDownloadFile(file);
+              }}
+              className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1 text-slate-500 hover:text-cyan-300 transition-all"
+              title="Download file"
+            >
+              <Download className="w-3.5 h-3.5" />
+            </button>
             {canManageFiles && (
               <button
                 onClick={e => {

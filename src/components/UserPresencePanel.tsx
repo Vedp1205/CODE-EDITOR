@@ -1,9 +1,12 @@
-import { Circle, Wifi, X } from 'lucide-react';
+import { Circle, ShieldBan, Wifi, X } from 'lucide-react';
 import type { User } from '../types';
 
 interface UserPresencePanelProps {
   users: User[];
   ownerId: string;
+  currentUserId: string;
+  canKickMembers?: boolean;
+  onKickMember?: (user: User) => void;
   className?: string;
   showCloseButton?: boolean;
   onClose?: () => void;
@@ -12,6 +15,9 @@ interface UserPresencePanelProps {
 export function UserPresencePanel({
   users,
   ownerId,
+  currentUserId,
+  canKickMembers = false,
+  onKickMember,
   className = '',
   showCloseButton = false,
   onClose,
@@ -45,6 +51,7 @@ export function UserPresencePanel({
         {users.map(user => {
           const isActive = now - user.lastActive < 5000;
           const isAdmin = user.id === ownerId;
+          const canKick = canKickMembers && user.id !== ownerId && user.id !== currentUserId;
           return (
             <div
               key={user.id}
@@ -86,6 +93,15 @@ export function UserPresencePanel({
                 style={{ backgroundColor: user.color }}
                 title={isActive ? 'Active now' : 'Away'}
               />
+              {canKick && onKickMember && (
+                <button
+                  onClick={() => onKickMember(user)}
+                  className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1 text-slate-500 hover:text-red-400 transition-all"
+                  title={`Kick ${user.name}`}
+                >
+                  <ShieldBan className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
           );
         })}
