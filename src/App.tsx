@@ -1,0 +1,200 @@
+import { useEffect, useState, useCallback } from 'react';
+import { WelcomeScreen } from './components/WelcomeScreen';
+import { TopBar } from './components/TopBar';
+import { FileExplorer } from './components/FileExplorer';
+import { EditorPanel } from './components/EditorPanel';
+import { UserPresencePanel } from './components/UserPresencePanel';
+import { ChatPanel } from './components/ChatPanel';
+import { CodeExecutionPanel } from './components/CodeExecutionPanel';
+import { ArchitectureDiagram } from './components/ArchitectureDiagram';
+import { useRoom } from './hooks/useRoom';
+
+export function App() {
+  const {
+    room,
+    currentUser,
+    chatMessages,
+    isJoined,
+    createRoom,
+    joinRoom,
+    updateFileContent,
+    addFile,
+    deleteFile,
+    sendChatMessage,
+    leaveRoom,
+  } = useRoom();
+
+  const [activeFileId, setActiveFileId] = useState<string | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [executionOpen, setExecutionOpen] = useState(false);
+  const [archOpen, setArchOpen] = useState(false);
+
+  const activeFile = room?.files.find(f => f.id === activeFileId) || null;
+
+  useEffect(() => {
+    if (!room) {
+      setActiveFileId(null);
+      return;
+    }
+
+    if (!activeFileId && room.files.length > 0) {
+      setActiveFileId(room.files[0].id);
+      return;
+    }
+
+    if (activeFileId && !room.files.some(file => file.id === activeFileId)) {
+      setActiveFileId(room.files[0]?.id || null);
+    }
+  }, [activeFileId, room]);
+
+  const handleCreateRoom = useCallback((name: string, userName: string) => {
+    createRoom(name, userName);
+  }, [createRoom]);
+
+  const handleJoinRoom = useCallback((roomId: string, userName: string) => {
+    joinRoom(roomId, userName);
+  }, [joinRoom]);
+
+  const handleFileContentChange = useCallback((content: string) => {
+    if (activeFileId) {
+      updateFileContent(activeFileId, content);
+    }
+  }, [activeFileId, updateFileContent]);
+
+  if (!isJoined) {
+    return (
+      <>
+        <WelcomeScreen onCreateRoom={handleCreateRoom} onJoinRoom={handleJoinRoom} />
+        <ArchitectureDiagram isOpen={archOpen} onClose={() => setArchOpen(false)} />
+      </>
+    );
+  }
+
+  if (!room || !currentUser) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mx-auto mb-6" />
+          <p className="text-slate-400 text-lg">Loading room...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-screen bg-slate-950 flex flex-col overflow-hidden">
+      {/* Top Bar */}
+      <TopBar room={room} currentUser={currentUser} onLeaveRoom={leaveRoom} />
+
+      {/* Main Content */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* File Explorer - Left Sidebar */}
+        <FileExplorer
+          files={room.files}
+           activeFileId={activeFileId ?? ''}
+          onSelectFile={setActiveFileId}
+          onAddFile={addFile}
+          onDeleteFile={deleteFile}
+        />
+
+        {/* Editor + Execution */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Tab Bar */}
+          {activeFile && (
+            <div className="h-11 bg-slate-900/60 border-b border-white/10 flex items-center px-2 gap-1 overflow-x-auto">
+              {room.files.map(file => (
+                <button
+                  key={file.id}
+                  onClick={() => setActiveFileId(file.id)}
+                  className={`group flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 shrink-0 ${
+                    activeFileId === file.id
+                      ? 'bg-white/10 text-white border-b-2 border-indigo-500'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border-b-2 border-transparent'
+                  }`}
+                >
+                  <span className={`text-xs font-bold ${
+                    file.language === 'javascript' ? 'text-yellow-400' :
+                    file.language === 'python' ? 'text-green-400' :
+                    file.language === 'cpp' ? 'text-purple-400' :
+                    file.language === 'java' ? 'text-orange-400' :
+                    'text-slate-400'
+                  }`}>
+                    {file.language === 'javascript' ? 'JS' :
+                     file.language === 'python' ? 'PY' :
+                     file.language === 'cpp' ? 'C+' :
+                     file.language === 'java' ? 'JV' :
+                     file.language === 'html' ? '<>' :
+                     file.language === 'css' ? '{}' :
+                     file.language === 'json' ? '{}' :
+                     file.language === 'markdown' ? 'MD' :
+                     'TX'}
+                  </span>
+                  {file.name}
+                  {activeFileId === file.id && (
+                    <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full ml-1" />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Editor */}
+          <div className="flex-1 overflow-hidden">
+            <EditorPanel
+              content={activeFile?.content || ''}
+              language={activeFile?.language || ''}
+              onChange={handleFileContentChange}
+              isActive={!!activeFile}
+            />
+          </div>
+
+          {/* Code Execution Panel */}
+          <CodeExecutionPanel
+            isOpen={executionOpen}
+            onToggle={() => setExecutionOpen(!executionOpen)}
+          />
+        </div>
+
+        {/* User Presence - Right Sidebar */}
+        <UserPresencePanel users={room.users} />
+
+        {/* Chat Panel */}
+        <ChatPanel
+          messages={chatMessages}
+          onSendMessage={sendChatMessage}
+          isOpen={chatOpen}
+          onToggle={() => setChatOpen(!chatOpen)}
+        />
+      </div>
+
+      {/* Status Bar */}
+      <div className="h-7 bg-indigo-600 flex items-center justify-between px-4 text-xs text-white/90">
+        <div className="flex items-center gap-4">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+            Connected
+          </span>
+          <span>Room: {room.name}</span>
+          <span>Users: {room.users.length}</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <span>{activeFile?.name || 'No file selected'}</span>
+          <span>{activeFile?.language || 'Plain Text'}</span>
+          <span>UTF-8</span>
+          <span>Monaco Editor</span>
+        </div>
+      </div>
+
+      {/* Architecture Button */}
+      <button
+        onClick={() => setArchOpen(true)}
+        className="fixed bottom-6 left-6 z-50 w-14 h-14 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-full shadow-2xl shadow-cyan-500/40 flex items-center justify-center hover:scale-110 transition-transform"
+        title="View Architecture & Setup Guide"
+      >
+        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+        </svg>
+      </button>
+    </div>
+  );
+}
