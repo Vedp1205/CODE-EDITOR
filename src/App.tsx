@@ -25,6 +25,7 @@ export function App() {
     updateFileContent,
     addFile,
     deleteFile,
+    recoverFile,
     sendChatMessage,
     kickMember,
     leaveRoom,
@@ -223,8 +224,10 @@ export function App() {
           onSelectFile={setActiveFileId}
           onAddFile={addFile}
           onDeleteFile={deleteFile}
+          onRecoverFile={recoverFile}
           onDownloadFile={handleDownloadFile}
           canManageFiles={isAdmin}
+          isAdmin={isAdmin}
           className="hidden md:flex"
         />
 
@@ -343,8 +346,10 @@ export function App() {
             }}
             onAddFile={addFile}
             onDeleteFile={deleteFile}
+            onRecoverFile={recoverFile}
             onDownloadFile={handleDownloadFile}
             canManageFiles={isAdmin}
+            isAdmin={isAdmin}
             className="w-[86vw] max-w-sm shrink-0"
             showCloseButton
             onClose={closeMobilePanels}

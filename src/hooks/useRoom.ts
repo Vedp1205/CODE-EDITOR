@@ -218,13 +218,16 @@ export function useRoom() {
   const deleteFile = useCallback((fileId: string) => {
     const roomId = roomIdRef.current;
 
-    setRoom(prev => prev ? {
-      ...prev,
-      files: prev.files.filter(file => file.id !== fileId),
-    } : null);
-
     if (roomId) {
       getSocket().emit('delete-file', { roomId, fileId });
+    }
+  }, [getSocket]);
+
+  const recoverFile = useCallback((fileId: string) => {
+    const roomId = roomIdRef.current;
+
+    if (roomId) {
+      getSocket().emit('recover-file', { roomId, fileId });
     }
   }, [getSocket]);
 
@@ -272,6 +275,7 @@ export function useRoom() {
     updateFileContent,
     addFile,
     deleteFile,
+    recoverFile,
     sendChatMessage,
     kickMember,
     leaveRoom,

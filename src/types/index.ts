@@ -14,6 +14,7 @@ export interface FileEntry {
   content: string;
   lastModified: number;
   lastModifiedBy: string;
+  deleted?: boolean;
 }
 
 export interface Room {

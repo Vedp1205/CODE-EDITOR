@@ -7,6 +7,19 @@ import { Server } from 'socket.io';
 
 dotenv.config();
 
+const logSchema = new mongoose.Schema({
+  roomId: String,
+  userId: String,
+  userName: String,
+  action: String, // 'edit', 'delete', 'recover'
+  fileId: String,
+  fileName: String,
+  timestamp: { type: Date, default: Date.now },
+  details: mongoose.Schema.Types.Mixed, // for additional info
+});
+
+const Log = mongoose.model('Log', logSchema);
+
 const PORT = process.env.PORT || 5000;
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
 
@@ -50,6 +63,7 @@ const DEFAULT_FILES = [
     content: `// Welcome to CodeCollab!\n// Start coding with your team in real time\n\nfunction fibonacci(n) {\n  if (n <= 1) return n;\n  return fibonacci(n - 1) + fibonacci(n - 2);\n}\n\nconst results = [];\nfor (let i = 0; i < 10; i++) {\n  results.push(fibonacci(i));\n}\n\nconsole.log("Fibonacci sequence:", results);\n`,
     lastModified: Date.now(),
     lastModifiedBy: 'system',
+    deleted: false,
   },
   {
     id: '2',
@@ -58,6 +72,7 @@ const DEFAULT_FILES = [
     content: `def quick_sort(arr):\n    if len(arr) <= 1:\n        return arr\n    pivot = arr[len(arr) // 2]\n    left = [x for x in arr if x < pivot]\n    middle = [x for x in arr if x == pivot]\n    right = [x for x in arr if x > pivot]\n    return quick_sort(left) + middle + quick_sort(right)\n\nprint(quick_sort([64, 34, 25, 12, 22, 11, 90]))\n`,
     lastModified: Date.now(),
     lastModifiedBy: 'system',
+    deleted: false,
   },
 ];
 
@@ -146,6 +161,9 @@ io.on('connection', (socket) => {
     const room = rooms.get(roomId);
     if (!room) return;
 
+    const file = room.files.find(f => f.id === fileId);
+    const user = room.users.find(u => u.id === socket.data.userId);
+
     room.files = room.files.map((file) => (
       file.id === fileId
         ? {
@@ -156,6 +174,20 @@ io.on('connection', (socket) => {
           }
         : file
     ));
+
+    // Log the edit
+    if (process.env.MONGODB_URI && file && user) {
+      const log = new Log({
+        roomId,
+        userId: user.id,
+        userName: user.name,
+        action: 'edit',
+        fileId,
+        fileName: file.name,
+        details: { previousLength: file.content.length, newLength: content.length },
+      });
+      log.save().catch(err => console.error('Log save error:', err));
+    }
 
     socket.to(roomId).emit('code-update', {
       fileId,
@@ -174,7 +206,56 @@ io.on('connection', (socket) => {
   socket.on('delete-file', ({ roomId, fileId }) => {
     const room = rooms.get(roomId);
     if (!room) return;
-    room.files = room.files.filter((file) => file.id !== fileId);
+    const file = room.files.find(f => f.id === fileId);
+    const user = room.users.find(u => u.id === socket.data.userId);
+
+    room.files = room.files.map((file) => (
+      file.id === fileId
+        ? { ...file, deleted: true, lastModified: Date.now(), lastModifiedBy: socket.data.userId || socket.id }
+        : file
+    ));
+
+    // Log the delete
+    if (process.env.MONGODB_URI && file && user) {
+      const log = new Log({
+        roomId,
+        userId: user.id,
+        userName: user.name,
+        action: 'delete',
+        fileId,
+        fileName: file.name,
+      });
+      log.save().catch(err => console.error('Log save error:', err));
+    }
+
+    emitRoomState(roomId);
+  });
+
+  socket.on('recover-file', ({ roomId, fileId }) => {
+    const room = rooms.get(roomId);
+    if (!room || room.owner !== socket.data.userId) return;
+    const file = room.files.find(f => f.id === fileId);
+    const user = room.users.find(u => u.id === socket.data.userId);
+
+    room.files = room.files.map((file) => (
+      file.id === fileId
+        ? { ...file, deleted: false, lastModified: Date.now(), lastModifiedBy: socket.data.userId || socket.id }
+        : file
+    ));
+
+    // Log the recover
+    if (process.env.MONGODB_URI && file && user) {
+      const log = new Log({
+        roomId,
+        userId: user.id,
+        userName: user.name,
+        action: 'recover',
+        fileId,
+        fileName: file.name,
+      });
+      log.save().catch(err => console.error('Log save error:', err));
+    }
+
     emitRoomState(roomId);
   });
 
