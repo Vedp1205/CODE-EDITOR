@@ -10,6 +10,7 @@ import {
   Menu,
   MessageCircle,
   Play,
+  Server,
   Share2,
   Users,
   Wifi,
@@ -26,6 +27,7 @@ interface TopBarProps {
   onOpenUsers: () => void;
   onOpenChat: () => void;
   onOpenHistory: () => void;
+  onOpenArchitecture: () => void;
   onToggleExecution: () => void;
 }
 
@@ -39,6 +41,7 @@ export function TopBar({
   onOpenUsers,
   onOpenChat,
   onOpenHistory,
+  onOpenArchitecture,
   onToggleExecution,
 }: TopBarProps) {
   const [copied, setCopied] = useState(false);
@@ -142,6 +145,13 @@ export function TopBar({
             <ListChecks className="w-4 h-4" />
           </button>
           <button
+            onClick={onOpenArchitecture}
+            className="p-2 text-cyan-300 hover:text-white hover:bg-cyan-500/10 rounded-lg transition-colors"
+            title="Architecture guide"
+          >
+            <Server className="w-4 h-4" />
+          </button>
+          <button
             onClick={onOpenChat}
             className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
             title="Open chat"
@@ -171,6 +181,13 @@ export function TopBar({
           )}
         </button>
 
+        <button
+          onClick={onOpenArchitecture}
+          className="hidden sm:flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-cyan-500/10 text-cyan-200 border border-cyan-400/20 hover:bg-cyan-500/20 transition-all duration-300"
+        >
+          <Server className="w-4 h-4" />
+          Architecture
+        </button>
         <button
           onClick={onDownloadActiveFile}
           className="hidden sm:flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10 transition-all duration-300"

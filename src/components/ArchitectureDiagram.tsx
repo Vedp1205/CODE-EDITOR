@@ -10,15 +10,7 @@ export function ArchitectureDiagram({ isOpen, onClose }: ArchitectureDiagramProp
   const [activeTab, setActiveTab] = useState<'architecture' | 'folder' | 'packages'>('architecture');
 
   if (!isOpen) {
-    return (
-      <button
-        onClick={onClose}
-        className="fixed bottom-6 left-6 z-50 w-14 h-14 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-full shadow-2xl shadow-cyan-500/40 flex items-center justify-center hover:scale-110 transition-transform"
-        title="View Architecture & Setup Guide"
-      >
-        <Server className="w-6 h-6" />
-      </button>
-    );
+    return null;
   }
 
   return (

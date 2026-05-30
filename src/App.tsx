@@ -1,4 +1,4 @@
-import { FolderOpen, MessageCircle, Play, Users } from 'lucide-react';
+import { FolderOpen, MessageCircle, Play, Server, Users } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { TopBar } from './components/TopBar';
@@ -8,6 +8,7 @@ import { UserPresencePanel } from './components/UserPresencePanel';
 import { ChatPanel } from './components/ChatPanel';
 import { ActivityPanel } from './components/ActivityPanel';
 import { CodeExecutionPanel } from './components/CodeExecutionPanel';
+import { ArchitectureDiagram } from './components/ArchitectureDiagram';
 import { useRoom } from './hooks/useRoom';
 import type { User } from './types';
 
@@ -50,6 +51,7 @@ export function App() {
   const [chatOpen, setChatOpen] = useState(false);
   const [executionOpen, setExecutionOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [archOpen, setArchOpen] = useState(false);
   const [mobileExplorerOpen, setMobileExplorerOpen] = useState(false);
   const [mobileUsersOpen, setMobileUsersOpen] = useState(false);
   const [autoJoinAttempted, setAutoJoinAttempted] = useState(false);
@@ -153,11 +155,22 @@ export function App() {
 
   if (!isJoined) {
     return (
-      <WelcomeScreen
-        onCreateRoom={handleCreateRoom}
-        onJoinRoom={handleJoinRoom}
-        initialRoomId={sharedRoomId}
-      />
+      <>
+        <WelcomeScreen
+          onCreateRoom={handleCreateRoom}
+          onJoinRoom={handleJoinRoom}
+          initialRoomId={sharedRoomId}
+        />
+        <button
+          onClick={() => setArchOpen(true)}
+          className="fixed bottom-6 left-6 z-40 flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-500/15 px-4 py-3 text-sm font-semibold text-cyan-100 shadow-2xl shadow-cyan-500/20 backdrop-blur hover:bg-cyan-500/25"
+          title="View Architecture & Setup Guide"
+        >
+          <Server className="w-5 h-5" />
+          Architecture
+        </button>
+        <ArchitectureDiagram isOpen={archOpen} onClose={() => setArchOpen(false)} />
+      </>
     );
   }
 
@@ -191,6 +204,7 @@ export function App() {
           setMobileUsersOpen(true);
         }}
         onOpenHistory={handleOpenHistory}
+        onOpenArchitecture={() => setArchOpen(true)}
         onOpenChat={() => {
           setMobileExplorerOpen(false);
           setMobileUsersOpen(false);
@@ -353,6 +367,16 @@ export function App() {
         </div>
       </div>
 
+      <button
+        onClick={() => setArchOpen(true)}
+        className="fixed bottom-24 left-4 z-40 flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-500/15 px-4 py-3 text-sm font-semibold text-cyan-100 shadow-2xl shadow-cyan-500/20 backdrop-blur hover:bg-cyan-500/25 md:hidden"
+        title="View Architecture & Setup Guide"
+      >
+        <Server className="w-5 h-5" />
+        Architecture
+      </button>
+
+      <ArchitectureDiagram isOpen={archOpen} onClose={() => setArchOpen(false)} />
       {mobileExplorerOpen && (
         <div className="md:hidden fixed inset-0 z-50 flex">
           <button
